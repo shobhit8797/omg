@@ -10,6 +10,11 @@ const App: React.FC = () => {
       </header>
       <VideoChat />
     </div>
+    // <BrowserRouter>
+    //   <Routes>
+    //     <Route path="/" element={<Landing />} />
+    //   </Routes>
+    // </BrowserRouter>
   );
 };
 
