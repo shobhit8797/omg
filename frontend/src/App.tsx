@@ -1,18 +1,16 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { Landing } from "./components/Landing";
-import { Room } from "./components/Room";
+import React from "react";
+import "./App.css";
+import VideoChat from "./components/VideoChat";
 
-function App() {
-    return (
-        <>
-            <BrowserRouter>
-                <Routes>
-                    <Route path="/" element={<Landing />} />
-                    <Route path="/room" element={<Room />} />
-                </Routes>
-            </BrowserRouter>
-        </>
-    );
-}
+const App: React.FC = () => {
+  return (
+    <div className="App">
+      <header className="App-header">
+        <h1>Video Chat App</h1>
+      </header>
+      <VideoChat />
+    </div>
+  );
+};
 
 export default App;
