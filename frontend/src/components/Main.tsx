@@ -1,4 +1,5 @@
 import { ModeToggle } from "./mode-toggle";
+import { NavBar } from "./NavBar";
 import { Room } from "./Room";
 
 export const Main = () => {
@@ -6,7 +7,8 @@ export const Main = () => {
         <>
             <div className="flex flex-col h-screen">
                 <div className="h-[5%]">
-                    <ModeToggle />
+                    {/* <ModeToggle /> */}
+                    <NavBar />
                 </div>
                 <div className="h-[95%]">
                     <Room />
