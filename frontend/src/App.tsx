@@ -1,20 +1,18 @@
+import { ThemeProvider } from "@/components/theme-provider";
+import "@/globals.css";
 import React from "react";
-import "./App.css";
-import VideoChat from "./components/VideoChat";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { Main } from "./components/Main";
 
 const App: React.FC = () => {
   return (
-    <div className="App">
-      <header className="App-header">
-        <h1>Video Chat App</h1>
-      </header>
-      <VideoChat />
-    </div>
-    // <BrowserRouter>
-    //   <Routes>
-    //     <Route path="/" element={<Landing />} />
-    //   </Routes>
-    // </BrowserRouter>
+      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+          <BrowserRouter>
+              <Routes>
+                  <Route path="/" element={<Main />} />
+              </Routes>
+          </BrowserRouter>
+      </ThemeProvider>
   );
 };
 

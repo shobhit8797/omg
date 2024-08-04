@@ -1,10 +1,8 @@
-"use client";
-
 import * as React from "react";
-import {Link} from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import { cn } from "@/lib/utils";
-import { Icons } from "@/components/icons";
+import { Icons } from "@/components/Icons";
 import {
     NavigationMenu,
     NavigationMenuContent,
@@ -13,7 +11,7 @@ import {
     NavigationMenuList,
     NavigationMenuTrigger,
     navigationMenuTriggerStyle,
-} from "@/registry/default/ui/navigation-menu";
+} from "@/components/ui/navigation-menu";
 
 const components: { title: string; href: string; description: string }[] = [
     {
@@ -53,7 +51,7 @@ const components: { title: string; href: string; description: string }[] = [
     },
 ];
 
-export default function NavigationMenuDemo() {
+export default function NA() {
     return (
         <NavigationMenu>
             <NavigationMenuList>
