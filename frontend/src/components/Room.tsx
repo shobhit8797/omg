@@ -1,6 +1,12 @@
+import {
+    ResizableHandle,
+    ResizablePanel,
+    ResizablePanelGroup,
+} from "@/components/ui/resizable";
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Socket, io } from "socket.io-client";
+import { VideoCard } from "./VideoCard";
 
 const URL = "http://localhost:3000";
 
@@ -207,11 +213,42 @@ export const Room = ({
     }, [localVideoRef]);
 
     return (
-        <div>
-            Hi {name}
-            <video autoPlay width={400} height={400} ref={localVideoRef} />
-            {lobby ? "Waiting to connect you to someone" : null}
-            <video autoPlay width={400} height={400} ref={remoteVideoRef} />
-        </div>
+        <>
+            <ResizablePanelGroup
+                direction="horizontal"
+                className="w-full rounded-lg border"
+            >
+                <ResizablePanel defaultSize={50}>
+                    <ResizablePanelGroup direction="vertical">
+                        <ResizablePanel defaultSize={50}>
+                            <VideoCard
+                                localVideoRef={remoteVideoRef}
+                                className="h-full"
+                            />
+                        </ResizablePanel>
+                        <ResizableHandle withHandle />
+                        <ResizablePanel defaultSize={50}>
+                                <VideoCard
+                                    localVideoRef={localVideoRef}
+                                    className="h-full"
+                                />
+                        </ResizablePanel>
+                    </ResizablePanelGroup>
+                </ResizablePanel>
+                <ResizableHandle withHandle />
+                <ResizablePanel defaultSize={50}>
+                    <div className="flex h-full items-center justify-center p-6">
+                        <span className="font-semibold">Chat Screen</span>
+                    </div>
+                </ResizablePanel>
+            </ResizablePanelGroup>
+
+            {/* {lobby ? "Waiting to connect you to someone" : null}
+            <VideoCard
+                localVideoRef={remoteVideoRef}
+                width={400}
+                height={400}
+            /> */}
+        </>
     );
 };
