@@ -17,6 +17,8 @@ export class UserManagerService {
   addUser(name: string, socket: Socket) {
     this.users.push({ name, socket });
     this.queue.push(socket.id);
+    console.log('this.queue', this.queue, this.queue.length);
+    
     socket.emit('lobby');
     this.clearQueue();
     this.initHandlers(socket);

@@ -30,9 +30,10 @@ export class ChatGateway
   handleConnection(client: Socket) {
     this.logger.log(`Client connected: ${client.id}`);
     // Assuming the client sends their name upon connection
-    client.on('join', (name: string) => {
-      this.userManager.addUser(name, client);
-    });
+    // client.on('join', (name: string) => {
+    console.log("Hi there");
+    this.userManager.addUser('shake', client);
+    // });
   }
 
   handleDisconnect(client: Socket) {
