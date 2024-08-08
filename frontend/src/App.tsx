@@ -3,15 +3,25 @@ import "@/globals.css";
 import React from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Main } from "./components/Main";
+import { Landing } from "./components/Landing";
+import { NavBar } from "./components/NavBar";
 
 const App: React.FC = () => {
   return (
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-          <BrowserRouter>
-              <Routes>
-                  <Route path="/" element={<Main />} />
-              </Routes>
-          </BrowserRouter>
+          <div className="flex flex-col h-screen">
+              <div className="h-[5%]">
+                  {/* <ModeToggle /> */}
+                  <NavBar />
+              </div>
+              <div className="h-[95%]">
+                  <BrowserRouter>
+                      <Routes>
+                          <Route path="/" element={<Landing />} />
+                      </Routes>
+                  </BrowserRouter>
+              </div>
+          </div>
       </ThemeProvider>
   );
 };

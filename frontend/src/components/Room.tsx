@@ -7,8 +7,9 @@ import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Socket, io } from "socket.io-client";
 import { VideoCard } from "./VideoCard";
+import { log } from "console";
 
-const URL = "http://localhost:3000";
+const URL = "http://localhost:8000";
 
 export const Room = ({
     name,
@@ -34,22 +35,27 @@ export const Room = ({
         useState<MediaStream | null>(null);
     const remoteVideoRef = useRef<HTMLVideoElement>();
     const localVideoRef = useRef<HTMLVideoElement>();
+    console.log("name:", name);
+    console.log("localVideoRef:", localVideoRef);
+    console.log("*".repeat(100));
+    
 
     useEffect(() => {
         const socket = io(URL);
+        
         socket.on("send-offer", async ({ roomId }) => {
-            console.log("sending offer");
+            console.log("sending offer", roomId);
             setLobby(false);
             const pc = new RTCPeerConnection();
 
             setSendingPc(pc);
             if (localVideoTrack) {
-                console.error("added tack");
+                console.error("local video added tack");
                 console.log(localVideoTrack);
                 pc.addTrack(localVideoTrack);
             }
             if (localAudioTrack) {
-                console.error("added tack");
+                console.error("local audio added tack");
                 console.log(localAudioTrack);
                 pc.addTrack(localAudioTrack);
             }
@@ -89,6 +95,8 @@ export const Room = ({
             if (remoteVideoRef.current) {
                 remoteVideoRef.current.srcObject = stream;
             }
+            console.log("set remote media stream");
+            
 
             setRemoteMediaStream(stream);
             // trickle ice
@@ -145,7 +153,7 @@ export const Room = ({
                 //@ts-ignore
                 remoteVideoRef.current.srcObject.addTrack(track2);
                 //@ts-ignore
-                remoteVideoRef.current.play();
+                // remoteVideoRef.current.play();
                 // if (type == 'audio') {
                 //     // setRemoteAudioTrack(track);
                 //     // @ts-ignore
@@ -202,12 +210,17 @@ export const Room = ({
     }, [name]);
 
     useEffect(() => {
+        console.log("localVideoRef.current:", localVideoRef.current);
+        
         if (localVideoRef.current) {
+            console.log("localVideoRef.current.srcObject:", localVideoRef.current.srcObject);
+            console.log("localVideoTrack:", localVideoTrack);
+            
             if (localVideoTrack) {
                 localVideoRef.current.srcObject = new MediaStream([
                     localVideoTrack,
                 ]);
-                localVideoRef.current.play();
+                // localVideoRef.current.play();
             }
         }
     }, [localVideoRef]);
@@ -222,14 +235,14 @@ export const Room = ({
                     <ResizablePanelGroup direction="vertical">
                         <ResizablePanel defaultSize={50}>
                             <VideoCard
-                                localVideoRef={remoteVideoRef}
+                                videoRef={remoteVideoRef}
                                 className="h-full"
                             />
                         </ResizablePanel>
                         <ResizableHandle withHandle />
                         <ResizablePanel defaultSize={50}>
                                 <VideoCard
-                                    localVideoRef={localVideoRef}
+                                    videoRef={localVideoRef}
                                     className="h-full"
                                 />
                         </ResizablePanel>

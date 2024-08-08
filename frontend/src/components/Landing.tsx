@@ -10,7 +10,10 @@ export const Landing = () => {
         useState<MediaStreamTrack | null>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
 
+
     const [joined, setJoined] = useState(false);
+    // Triggering 3 times
+    console.log("joined:", joined);
 
     const getCam = async () => {
         const stream = await window.navigator.mediaDevices.getUserMedia({
@@ -26,7 +29,7 @@ export const Landing = () => {
             return;
         }
         videoRef.current.srcObject = new MediaStream([videoTrack]);
-        videoRef.current.play();
+        // videoRef.current.play();
         // MediaStream
     };
 
@@ -56,12 +59,12 @@ export const Landing = () => {
             </div>
         );
     }
-
+    else{
     return (
         <Room
             name={name}
             localAudioTrack={localAudioTrack}
             localVideoTrack={localVideoTrack}
         />
-    );
+    );}
 };
