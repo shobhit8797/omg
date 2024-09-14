@@ -1,25 +1,38 @@
+import { MyForm } from "@/components/MyForm";
 import { socket } from "@/socket";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
-export const Main = () => {
+export default function Main() {
     const [isConnected, setIsConnected] = useState(socket.connected);
+    const [fooEvents, setFooEvents] = useState([]);
 
     useEffect(() => {
-        socket.on("connect", () => setIsConnected(true));
-        socket.on("disconnect", () => setIsConnected(false));
+        function onConnect() {
+            setIsConnected(true);
+        }
 
-        // Clean up the event listeners on component unmount
+        function onDisconnect() {
+            setIsConnected(false);
+        }
+
+        function onFooEvent(value) {
+            setFooEvents((previous) => [...previous, value]);
+        }
+
+        socket.on("connect", onConnect);
+        socket.on("disconnect", onDisconnect);
+        socket.on("foo", onFooEvent);
+
         return () => {
-            socket.off("connect");
-            socket.off("disconnect");
+            socket.off("connect", onConnect);
+            socket.off("disconnect", onDisconnect);
+            socket.off("foo", onFooEvent);
         };
     }, []);
 
     return (
-        <>
-            <div className="flex">
-                Connection Status: {isConnected ? "Connected" : "Disconnected"}
-            </div>
-        </>
+        <div className="App">
+            <MyForm />
+        </div>
     );
-};
+}
