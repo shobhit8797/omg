@@ -169,7 +169,6 @@ app.post("/login", async (req, res) => {
         // , {
         //     expiresIn: "1h",
         // });
-
         res.json({ token, message: "Login successful" });
     } catch (error) {
         res.status(500).json({ error: "An error occurred during login" });
