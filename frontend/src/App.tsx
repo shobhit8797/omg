@@ -1,11 +1,12 @@
 import { ThemeProvider } from "@/components/theme-provider";
 import "@/globals.css";
 import React from "react";
-import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { SignInForm } from "./components/Auth/LoginForm";
 import Main from "./components/Main";
 import { NavBar } from "./components/NavBar";
-import { SignInForm } from "./components/LoginForm";
-import { SignUpForm } from "./components/SignUpForm";
+import { SignUpForm } from "./components/Auth/SignUpForm";
+import { Lobby } from "./components/VideoChat/Lobby";
 
 const App: React.FC = () => {
     const isAuthenticated = localStorage.getItem("token") ? true : false;
@@ -13,9 +14,9 @@ const App: React.FC = () => {
     return (
         <>
             <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-                <div className="flex min-h-screen w-full flex-col">
-                    {isAuthenticated ?  <NavBar /> : null}
-                    
+                <div className="flex w-full flex-col h-screen">
+                    {isAuthenticated ? <NavBar /> : null}
+
                     <BrowserRouter>
                         <Routes>
                             <Route
@@ -45,6 +46,17 @@ const App: React.FC = () => {
                                         <Navigate to="/" replace />
                                     ) : (
                                         <SignUpForm />
+                                    )
+                                }
+                            />
+
+                            <Route
+                                path="/lobby"
+                                element={
+                                    isAuthenticated ? (
+                                        <Lobby />
+                                    ) : (
+                                        <Navigate to="/signin" replace />
                                     )
                                 }
                             />

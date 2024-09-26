@@ -1,15 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
 import { Room } from "./Room";
 
-export const Landing = () => {
+export const Lobby = () => {
     const [name, setName] = useState("");
     const [localAudioTrack, setLocalAudioTrack] =
         useState<MediaStreamTrack | null>(null);
     const [localVideoTrack, setlocalVideoTrack] =
         useState<MediaStreamTrack | null>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
-
 
     const [joined, setJoined] = useState(false);
     // Triggering 3 times
@@ -58,13 +56,13 @@ export const Landing = () => {
                 </button>
             </div>
         );
+    } else {
+        return (
+            <Room
+                name={name}
+                localAudioTrack={localAudioTrack}
+                localVideoTrack={localVideoTrack}
+            />
+        );
     }
-    else{
-    return (
-        <Room
-            name={name}
-            localAudioTrack={localAudioTrack}
-            localVideoTrack={localVideoTrack}
-        />
-    );}
 };

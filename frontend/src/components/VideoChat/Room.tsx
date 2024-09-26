@@ -6,7 +6,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Socket, io } from "socket.io-client";
-import { VideoCard } from "./VideoCard";
+import { VideoCard } from "../VideoCard";
 import { log } from "console";
 
 const URL = "http://localhost:8000";
@@ -21,7 +21,6 @@ export const Room = ({
     localVideoTrack: MediaStreamTrack | null;
 }) => {
     const [searchParams, setSearchParams] = useSearchParams();
-    const [lobby, setLobby] = useState(true);
     const [socket, setSocket] = useState<null | Socket>(null);
     const [sendingPc, setSendingPc] = useState<null | RTCPeerConnection>(null);
     const [receivingPc, setReceivingPc] = useState<null | RTCPeerConnection>(
@@ -35,33 +34,24 @@ export const Room = ({
         useState<MediaStream | null>(null);
     const remoteVideoRef = useRef<HTMLVideoElement>();
     const localVideoRef = useRef<HTMLVideoElement>();
-    console.log("name:", name);
-    console.log("localVideoRef:", localVideoRef);
-    console.log("*".repeat(100));
-    
 
     useEffect(() => {
         const socket = io(URL);
-        
+
         socket.on("send-offer", async ({ roomId }) => {
-            console.log("sending offer", roomId);
-            setLobby(false);
+            console.log("recieved send-offer recieved for", socket.id);
             const pc = new RTCPeerConnection();
 
             setSendingPc(pc);
             if (localVideoTrack) {
-                console.error("local video added tack");
-                console.log(localVideoTrack);
                 pc.addTrack(localVideoTrack);
             }
             if (localAudioTrack) {
-                console.error("local audio added tack");
-                console.log(localAudioTrack);
                 pc.addTrack(localAudioTrack);
             }
 
             pc.onicecandidate = async (e) => {
-                console.log("receiving ice candidate locally");
+                console.log("receiving ice candidate locally, ");
                 if (e.candidate) {
                     socket.emit("add-ice-candidate", {
                         candidate: e.candidate,
@@ -74,8 +64,9 @@ export const Room = ({
             pc.onnegotiationneeded = async () => {
                 console.log("on negotiation neeeded, sending offer");
                 const sdp = await pc.createOffer();
-                //@ts-ignore
                 pc.setLocalDescription(sdp);
+                console.log("sending offer for socket id", socket.id);
+
                 socket.emit("offer", {
                     sdp,
                     roomId,
@@ -84,8 +75,7 @@ export const Room = ({
         });
 
         socket.on("offer", async ({ roomId, sdp: remoteSdp }) => {
-            console.log("received offer");
-            setLobby(false);
+            console.log("received offer for socket id", socket.id);
             const pc = new RTCPeerConnection();
             pc.setRemoteDescription(remoteSdp);
             const sdp = await pc.createAnswer();
@@ -96,7 +86,6 @@ export const Room = ({
                 remoteVideoRef.current.srcObject = stream;
             }
             console.log("set remote media stream");
-            
 
             setRemoteMediaStream(stream);
             // trickle ice
@@ -133,6 +122,8 @@ export const Room = ({
                 }
             };
 
+            console.log("sending answer for socket.id", socket.id);
+
             socket.emit("answer", {
                 roomId,
                 sdp: sdp,
@@ -168,16 +159,14 @@ export const Room = ({
         });
 
         socket.on("answer", ({ roomId, sdp: remoteSdp }) => {
-            setLobby(false);
+            console.log("answer received for socket id", socket.id);
             setSendingPc((pc) => {
+                console.log("setting remote description", remoteSdp);
+
                 pc?.setRemoteDescription(remoteSdp);
                 return pc;
             });
             console.log("loop closed");
-        });
-
-        socket.on("lobby", () => {
-            setLobby(true);
         });
 
         socket.on("add-ice-candidate", ({ candidate, type }) => {
@@ -210,12 +199,7 @@ export const Room = ({
     }, [name]);
 
     useEffect(() => {
-        console.log("localVideoRef.current:", localVideoRef.current);
-        
         if (localVideoRef.current) {
-            console.log("localVideoRef.current.srcObject:", localVideoRef.current.srcObject);
-            console.log("localVideoTrack:", localVideoTrack);
-            
             if (localVideoTrack) {
                 localVideoRef.current.srcObject = new MediaStream([
                     localVideoTrack,
@@ -241,10 +225,10 @@ export const Room = ({
                         </ResizablePanel>
                         <ResizableHandle withHandle />
                         <ResizablePanel defaultSize={50}>
-                                <VideoCard
-                                    videoRef={localVideoRef}
-                                    className="h-full"
-                                />
+                            <VideoCard
+                                videoRef={localVideoRef}
+                                className="h-full"
+                            />
                         </ResizablePanel>
                     </ResizablePanelGroup>
                 </ResizablePanel>
