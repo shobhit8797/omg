@@ -1,10 +1,26 @@
-const { PrismaClient } = require("@prisma/client");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const express = require("express");
-const { createServer } = require("http");
-const { Server } = require("socket.io");
-const cors = require("cors");
+import { PrismaClient, User } from "@prisma/client";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import express, { Request, Response, NextFunction } from "express";
+import { createServer } from "http";
+import { Server, Socket } from "socket.io";
+import cors from "cors";
+
+// Set up types for request and response bodies
+// interface SignupRequest extends Request {
+//     body: {
+//         username: string;
+//         email: string;
+//         password: string;
+//     };
+// }
+
+// interface LoginRequest extends Request {
+//     body: {
+//         email: string;
+//         password: string;
+//     };
+// }
 
 const app = express();
 const prisma = new PrismaClient();
@@ -12,9 +28,23 @@ const server = createServer(app);
 
 const JWT_SECRET = "your_jwt_secret";
 
+// Types for socket.io rooms and users
+type Room = {
+    user1: string;
+    user2: string;
+};
+
+type Rooms = {
+    [key: string]: Room;
+};
+
+let waitingUsers: string[] = []; // Store users waiting to be matched
+const rooms: Rooms = {}; // Store room participants
+
+// Set up CORS and socket.io with TypeScript types
 const io = new Server(server, {
     cors: {
-        origin: "*", // https://omg-frontend-kappa.vercel.app",
+        origin: "*",
         methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     },
 });
@@ -22,20 +52,17 @@ const io = new Server(server, {
 app.use(cors({ origin: "*" }));
 app.use(express.json());
 
-let waitingUsers = []; // Store users waiting to be matched
-const rooms = {}; // Store room participants
-
-app.get("/", (req, res) => {
+app.get("/", (req: Request, res: Response) => {
     res.send("<h1>Hello world</h1>");
 });
 
-app.get("/test", (req, res) => {
+app.get("/test", (req: Request, res: Response) => {
     res.send({
         message: "Hello World",
     });
 });
 
-io.on("connection", (socket) => {
+io.on("connection", (socket: Socket) => {
     console.log("a user connected");
 
     // Add the user to the waiting list
@@ -48,8 +75,8 @@ io.on("connection", (socket) => {
     if (waitingUsers.length >= 2) {
         // Create a new room ID
         const roomId = `room-${Date.now()}`;
-        const user1 = waitingUsers.shift();
-        const user2 = waitingUsers.shift();
+        const user1 = waitingUsers.shift()!;
+        const user2 = waitingUsers.shift()!;
 
         // Assign both users to the new room
         rooms[roomId] = { user1: user1, user2: user2 };
@@ -59,40 +86,57 @@ io.on("connection", (socket) => {
         io.to(user2).emit("send-offer", { roomId });
     }
 
-    socket.on("offer", ({ sdp, roomId }) => {
-        console.log("offer received for room:", roomId, socket.id);
+    socket.on(
+        "offer",
+        ({ sdp, roomId }: { sdp: RTCSessionDescription; roomId: string }) => {
+            console.log("offer received for room:", roomId, socket.id);
 
-        const receivingUser =
-            socket.id === rooms[roomId].user1
-                ? rooms[roomId].user2
-                : rooms[roomId].user1;
-        console.log("emmited offer to:", receivingUser);
+            const receivingUser =
+                socket.id === rooms[roomId].user1
+                    ? rooms[roomId].user2
+                    : rooms[roomId].user1;
+            console.log("emitted offer to:", receivingUser);
 
-        io.to(receivingUser).emit("offer", { roomId, sdp });
-    });
-
-    socket.on("answer", ({ roomId, sdp }) => {
-        console.log("answer received for room:", roomId, socket.id);
-        const receivingUser =
-            socket.id === rooms[roomId].user1
-                ? rooms[roomId].user2
-                : rooms[roomId].user1;
-        io.to(receivingUser).emit("answer", {
-            sdp,
-            roomId,
-        });
-    });
-
-    socket.on("add-ice-candidate", ({ candidate, type, roomId }) => {
-        const targetUser =
-            socket.id == rooms[roomId]?.user1
-                ? rooms[roomId]?.user2
-                : rooms[roomId]?.user1;
-        if (!targetUser) {
-            return;
+            io.to(receivingUser).emit("offer", { roomId, sdp });
         }
-        io.to(targetUser).emit("add-ice-candidate", { candidate, type });
-    });
+    );
+
+    socket.on(
+        "answer",
+        ({ roomId, sdp }: { roomId: string; sdp: RTCSessionDescription }) => {
+            console.log("answer received for room:", roomId, socket.id);
+            const receivingUser =
+                socket.id === rooms[roomId].user1
+                    ? rooms[roomId].user2
+                    : rooms[roomId].user1;
+            io.to(receivingUser).emit("answer", {
+                sdp,
+                roomId,
+            });
+        }
+    );
+
+    socket.on(
+        "add-ice-candidate",
+        ({
+            candidate,
+            type,
+            roomId,
+        }: {
+            candidate: RTCIceCandidate;
+            type: string;
+            roomId: string;
+        }) => {
+            const targetUser =
+                socket.id === rooms[roomId]?.user1
+                    ? rooms[roomId]?.user2
+                    : rooms[roomId]?.user1;
+            if (!targetUser) {
+                return;
+            }
+            io.to(targetUser).emit("add-ice-candidate", { candidate, type });
+        }
+    );
 
     socket.on("disconnect", () => {
         console.log("user disconnected");
@@ -101,8 +145,7 @@ io.on("connection", (socket) => {
 
 // Auth Routes
 // Signup endpoint
-app.post("/signup", async (req, res) => {
-    console.log(req.body);
+app.post("/signup", async (req: any, res: any) => {
     const { username, email, password } = req.body;
 
     if (!username || !email || !password) {
@@ -110,12 +153,10 @@ app.post("/signup", async (req, res) => {
     }
 
     try {
-        console.log("fetching user");
         // Check if user already exists
         const existingUser = await prisma.user.findUnique({
             where: { email },
         });
-        console.log("No user found:", existingUser);
 
         if (existingUser) {
             return res.status(400).json({ error: "User already exists" });
@@ -125,7 +166,6 @@ app.post("/signup", async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // Create new user
-        console.log("creating user");
         const user = await prisma.user.create({
             data: {
                 username,
@@ -133,16 +173,15 @@ app.post("/signup", async (req, res) => {
                 password: hashedPassword,
             },
         });
-        console.log("User created:", user);
 
         res.status(201).json({ message: "User created successfully" });
     } catch (error) {
-        console.log(error);
         res.status(500).json({ error: "An error occurred during signup" });
     }
 });
+
 // Login endpoint
-app.post("/login", async (req, res) => {
+app.post("/login", async (req: any, res: any) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -154,7 +193,6 @@ app.post("/login", async (req, res) => {
         const user = await prisma.user.findUnique({
             where: { email },
         });
-        console.log("User found:", user);
 
         if (!user) {
             return res.status(400).json({ error: "Invalid email or password" });
@@ -162,7 +200,6 @@ app.post("/login", async (req, res) => {
 
         // Check password
         const isPasswordValid = await bcrypt.compare(password, user.password);
-        console.log("Password valid:", isPasswordValid);
 
         if (!isPasswordValid) {
             return res.status(400).json({ error: "Invalid email or password" });
@@ -170,11 +207,7 @@ app.post("/login", async (req, res) => {
 
         // Generate JWT token
         const token = jwt.sign({ userId: user.id }, JWT_SECRET);
-        console.log("Token:", token);
 
-        // , {
-        //     expiresIn: "1h",
-        // });
         res.json({ token, message: "Login successful" });
     } catch (error) {
         res.status(500).json({ error: "An error occurred during login" });
