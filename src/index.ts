@@ -14,12 +14,17 @@ const JWT_SECRET = "your_jwt_secret";
 
 const io = new Server(server, {
     cors: {
-        origin: "http://localhost:3000",
+        origin: "https://omg-frontend-kappa.vercel.app",
         methods: ["GET", "POST"],
     },
 });
 
-app.use(cors());
+app.use(
+    cors({
+        origin: "https://omg-frontend-kappa.vercel.app", // Replace with your frontend URL
+        methods: ["GET", "POST"],
+    })
+);
 app.use(express.json());
 
 let waitingUsers = []; // Store users waiting to be matched
