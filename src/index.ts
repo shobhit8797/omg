@@ -19,12 +19,7 @@ const io = new Server(server, {
     },
 });
 
-app.use(
-    cors({
-        origin: "*", // https://omg-frontend-kappa.vercel.app",
-        methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    })
-);
+app.use(cors({ origin: "*" }));
 app.use(express.json());
 
 let waitingUsers = []; // Store users waiting to be matched
