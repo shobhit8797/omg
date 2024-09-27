@@ -14,15 +14,15 @@ const JWT_SECRET = "your_jwt_secret";
 
 const io = new Server(server, {
     cors: {
-        origin: "https://omg-frontend-kappa.vercel.app",
-        methods: ["GET", "POST"],
+        origin: "*", // https://omg-frontend-kappa.vercel.app",
+        methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     },
 });
 
 app.use(
     cors({
-        origin: "https://omg-frontend-kappa.vercel.app", // Replace with your frontend URL
-        methods: ["GET", "POST"],
+        origin: "*", // https://omg-frontend-kappa.vercel.app",
+        methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     })
 );
 app.use(express.json());
