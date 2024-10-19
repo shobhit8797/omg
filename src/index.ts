@@ -1,10 +1,10 @@
-import { PrismaClient, User } from "@prisma/client";
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-import express, { Request, Response, NextFunction } from "express";
-import { createServer } from "http";
-import { Server, Socket } from "socket.io";
 import cors from "cors";
+const {PrismaClient} = require("@prisma/client");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const express = require("express");
+const { createServer } = require("http");
+const { Server, Socket } = require("socket.io");
 
 // Set up types for request and response bodies
 // interface SignupRequest extends Request {
@@ -217,3 +217,5 @@ app.post("/login", async (req: any, res: any) => {
 server.listen(8000, () => {
     console.log("server running at http://localhost:8000");
 });
+
+module.exports = app;

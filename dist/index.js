@@ -12,13 +12,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const client_1 = require("@prisma/client");
-const bcrypt_1 = __importDefault(require("bcrypt"));
-const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const express_1 = __importDefault(require("express"));
-const http_1 = require("http");
-const socket_io_1 = require("socket.io");
 const cors_1 = __importDefault(require("cors"));
+const { PrismaClient } = require("@prisma/client");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const express = require("express");
+const { createServer } = require("http");
+const { Server, Socket } = require("socket.io");
 // Set up types for request and response bodies
 // interface SignupRequest extends Request {
 //     body: {
@@ -33,21 +33,21 @@ const cors_1 = __importDefault(require("cors"));
 //         password: string;
 //     };
 // }
-const app = (0, express_1.default)();
-const prisma = new client_1.PrismaClient();
-const server = (0, http_1.createServer)(app);
+const app = express();
+const prisma = new PrismaClient();
+const server = createServer(app);
 const JWT_SECRET = "your_jwt_secret";
 let waitingUsers = []; // Store users waiting to be matched
 const rooms = {}; // Store room participants
 // Set up CORS and socket.io with TypeScript types
-const io = new socket_io_1.Server(server, {
+const io = new Server(server, {
     cors: {
         origin: "*",
         methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     },
 });
 app.use((0, cors_1.default)({ origin: "*" }));
-app.use(express_1.default.json());
+app.use(express.json());
 app.get("/", (req, res) => {
     res.send("<h1>Hello world</h1>");
 });
@@ -122,7 +122,7 @@ app.post("/signup", (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             return res.status(400).json({ error: "User already exists" });
         }
         // Hash the password
-        const hashedPassword = yield bcrypt_1.default.hash(password, 10);
+        const hashedPassword = yield bcrypt.hash(password, 10);
         // Create new user
         const user = yield prisma.user.create({
             data: {
@@ -152,12 +152,12 @@ app.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             return res.status(400).json({ error: "Invalid email or password" });
         }
         // Check password
-        const isPasswordValid = yield bcrypt_1.default.compare(password, user.password);
+        const isPasswordValid = yield bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
             return res.status(400).json({ error: "Invalid email or password" });
         }
         // Generate JWT token
-        const token = jsonwebtoken_1.default.sign({ userId: user.id }, JWT_SECRET);
+        const token = jwt.sign({ userId: user.id }, JWT_SECRET);
         res.json({ token, message: "Login successful" });
     }
     catch (error) {
@@ -167,3 +167,4 @@ app.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* () 
 server.listen(8000, () => {
     console.log("server running at http://localhost:8000");
 });
+module.exports = app;
